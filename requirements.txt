@@ -1,0 +1,7 @@
+sqlalchemy
+ijson
+torch
+torchvision
+torchaudio
+transformers
+numpy
