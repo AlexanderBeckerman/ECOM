@@ -1,10 +1,8 @@
 import json
-from Project.models.restaurant import Restaurant
-from Project.models.base import Session
+from Project.models.models import Restaurant
 
+def load_restaurants(session, file_path, limit=50, batch_size=10):
 
-def load_restaurants(file_path, limit=50, batch_size=10):
-    session = Session()
     with open(file_path, 'r') as file:
         restaurants = []
         count = 0
@@ -35,4 +33,3 @@ def load_restaurants(file_path, limit=50, batch_size=10):
         if restaurants:
             session.bulk_save_objects(restaurants)
             session.commit()
-    session.close()

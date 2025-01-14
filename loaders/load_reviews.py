@@ -1,10 +1,8 @@
 import json
-from Project.models.review import Review
-from Project.models.base import Session
+from Project.models.models import Review
 
 
-def load_reviews(file_path, limit=50, batch_size=10):
-    session = Session()
+def load_reviews(session, file_path, limit=50, batch_size=10):
     with open(file_path, 'r') as file:
         reviews = []
         count = 0
@@ -37,5 +35,3 @@ def load_reviews(file_path, limit=50, batch_size=10):
         if reviews:
             session.bulk_save_objects(reviews)
             session.commit()
-
-        session.close()

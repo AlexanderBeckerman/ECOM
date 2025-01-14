@@ -1,21 +1,20 @@
 import json
-from Project.models.user import User
-from Project.models.base import Session
+from Project.models.models import User
 
-
-def load_users(file_path, limit=50, batch_size=10):
-    session = Session()
+def load_users(session, file_path, limit=50, batch_size=10):
     with open(file_path, 'r') as file:
         users = []
         count = 0
         for line in file:
             user = json.loads(line)
+            # friends_list = user.get('friends', [])
+            # if friends_list:
+            #     friends_list = friends_list.split(', ')
             users.append(User(
                 user_id=user['user_id'],
                 name=user['name'],
                 review_count=user.get('review_count', 0),
                 joined=user['yelping_since'],
-                friends=user.get('friends', []),
                 fans=user.get('fans', 0),
                 average_stars=user.get('average_stars', 0.0),
                 compliments=user.get('compliments', {}).get('total', 0)
@@ -33,5 +32,3 @@ def load_users(file_path, limit=50, batch_size=10):
         if users:
             session.bulk_save_objects(users)
             session.commit()
-
-        session.close()
