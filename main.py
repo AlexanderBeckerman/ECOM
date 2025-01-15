@@ -1,6 +1,6 @@
 from base import create_tables, engine, Session
 # from models.models import Restaurant, User, Review
-from loaders.load_users import load_users
+from loaders.load_users import load_users , load_restaurants, load_reviews
 from Project.models.models import User, Restaurant, Review
 from sqlalchemy import inspect
 
