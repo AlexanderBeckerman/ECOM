@@ -64,6 +64,7 @@ def get_reviews_with_multithreading(business_id, review_file, chunk_size=1000, m
 def extract_category_ratings(reviews, categories, relibility):
     category_scores = defaultdict(list)
     n = len(reviews)
+    personal_category_scores = [{} for i in range(n)]
     for i in range(n):
         review = reviews[i]
         realability_score = relibility[i]
@@ -83,12 +84,13 @@ def extract_category_ratings(reviews, categories, relibility):
                     else 3 - 2 * sentiment_result["score"]
                 )
                 category_scores[category].append(sentiment_score*realability_score)
+                personal_category_scores[i][category] = sentiment_score
                 print(
                     f"relevence score: {relevance}, sentiment score: {sentiment_score} for category: {category}, review:\n{review}")
                 print()
 
     # Average scores for each category
-    return {category: (np.sum(scores),len(scores)) if scores else 0 for category, scores in category_scores.items()}
+    return {category: [np.sum(scores),len(scores)] if scores else 0 for category, scores in category_scores.items()}, personal_category_scores
 
 
 business_id = "k0hlBqXX-Bt0vf1op7Jr1w"
@@ -103,5 +105,5 @@ sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncas
 categories = ["food", "service", "atmosphere", "music", "price"]
 
 # Extract category ratings from reviews
-category_ratings = extract_category_ratings(reviews, categories)
+category_ratings ,personal_category_scores = extract_category_ratings(reviews, categories)
 print(category_ratings)
