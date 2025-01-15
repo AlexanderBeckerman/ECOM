@@ -61,10 +61,12 @@ def get_reviews_with_multithreading(business_id, review_file, chunk_size=1000, m
 
 
 # Function to extract category ratings from reviews
-def extract_category_ratings(reviews, categories):
+def extract_category_ratings(reviews, categories, relibility):
     category_scores = defaultdict(list)
-
-    for review in reviews:
+    n = len(reviews)
+    for i in range(n):
+        review = reviews[i]
+        realability_score = relibility[i]
         # Relevance scores
         relevance_results = relevance_classifier(review, candidate_labels=categories)
         relevance_scores = {label: score for label, score in
@@ -80,13 +82,13 @@ def extract_category_ratings(reviews, categories):
                     if sentiment_result["label"] == "POSITIVE"
                     else 3 - 2 * sentiment_result["score"]
                 )
-                category_scores[category].append(sentiment_score)
+                category_scores[category].append(sentiment_score*realability_score)
                 print(
                     f"relevence score: {relevance}, sentiment score: {sentiment_score} for category: {category}, review:\n{review}")
                 print()
 
     # Average scores for each category
-    return {category: np.mean(scores) if scores else 0 for category, scores in category_scores.items()}
+    return {category: (np.sum(scores),len(scores)) if scores else 0 for category, scores in category_scores.items()}
 
 
 business_id = "k0hlBqXX-Bt0vf1op7Jr1w"
