@@ -1,6 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
 
-from transformers import pipeline
 import json
 import numpy as np
 from collections import defaultdict
@@ -61,13 +60,15 @@ def get_reviews_with_multithreading(business_id, review_file, chunk_size=1000, m
 
 
 # Function to extract category ratings from reviews
-def extract_category_ratings(reviews, categories, reliability):
+def extract_category_ratings(reviews, categories, relevance_classifier, sentiment_analyzer, reliabilities=None):
     category_scores = defaultdict(list)
     n = len(reviews)
     personal_category_scores = [{} for i in range(n)]
+    category_relevance_scores = defaultdict(list)
     for i in range(n):
         review = reviews[i]
-        reliability_score = reliability[i]
+        # reliability_score = reliabilities[i]
+        reliability_score = 1
         # Relevance scores
         relevance_results = relevance_classifier(review, candidate_labels=categories)
         relevance_scores = {label: score for label, score in
@@ -83,27 +84,25 @@ def extract_category_ratings(reviews, categories, reliability):
                     if sentiment_result["label"] == "POSITIVE"
                     else 3 - 2 * sentiment_result["score"]
                 )
-                category_scores[category].append(sentiment_score*reliability_score)
+
+                category_scores[category].append(sentiment_score * reliability_score)
                 personal_category_scores[i][category] = sentiment_score
+                category_relevance_scores[category].append(relevance)
                 print(
                     f"relevence score: {relevance}, sentiment score: {sentiment_score} for category: {category}, review:\n{review}")
                 print()
+    result = {}
+    for category, scores in category_scores.items():
+        if scores:
+            result[category] = np.dot(scores, category_relevance_scores[category]) / sum(
+                category_relevance_scores[category])
+        else:
+            result[category] = 0
+
+    return result, personal_category_scores
 
     # Average scores for each category
-    return {category: [np.sum(scores),len(scores)] if scores else 0 for category, scores in category_scores.items()}, personal_category_scores
+    # return {category: [np.sum(scores), len(scores)] if scores else 0 for category, scores in
+    #         category_scores.items()}, personal_category_scores
 
 
-business_id = "k0hlBqXX-Bt0vf1op7Jr1w"
-review_cnt = 19
-reviews = get_reviews_for_business(business_id, "../../Dataset/yelp_academic_dataset_review.json", review_cnt)
-
-# Load NLP models
-relevance_classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
-sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
-
-# Define categories to analyze - changes according to user preferences
-categories = ["food", "service", "atmosphere", "music", "price"]
-
-# Extract category ratings from reviews
-category_ratings ,personal_category_scores = extract_category_ratings(reviews, categories)
-print(category_ratings)
