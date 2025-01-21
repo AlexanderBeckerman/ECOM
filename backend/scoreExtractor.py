@@ -67,6 +67,7 @@ def extract_category_ratings(reviews, categories, relevance_classifier, sentimen
     category_relevance_scores = defaultdict(list)
     for i in range(n):
         review = reviews[i]
+        #need to work on it
         reliability_score = calculate_review_reliability(review)
         # Relevance scores
         relevance_results = relevance_classifier(review, candidate_labels=categories)

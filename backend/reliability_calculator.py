@@ -52,7 +52,7 @@ def calculate_reliability(user_id, file_path):
     return reliability
 
 def calculate_review_reliability(user_id, review_id, file_path, review_file_path):
-    # Retrieve the user data
+    # Retrieve the user data,
     user = get_user_data(user_id, file_path)
     if not user:
         return None  # If the user is not found
