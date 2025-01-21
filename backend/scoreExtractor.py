@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 import numpy as np
 from collections import defaultdict
-
+from reliability_calculator import calculate_review_reliability
 
 def get_reviews_for_business(business_id, review_file, num_reviews):
     reviews = []
@@ -60,15 +60,14 @@ def get_reviews_with_multithreading(business_id, review_file, chunk_size=1000, m
 
 
 # Function to extract category ratings from reviews
-def extract_category_ratings(reviews, categories, relevance_classifier, sentiment_analyzer, reliabilities=None):
+def extract_category_ratings(reviews, categories, relevance_classifier, sentiment_analyzer):
     category_scores = defaultdict(list)
     n = len(reviews)
     personal_category_scores = [{} for i in range(n)]
     category_relevance_scores = defaultdict(list)
     for i in range(n):
         review = reviews[i]
-        # reliability_score = reliabilities[i]
-        reliability_score = 1
+        reliability_score = calculate_review_reliability(review)
         # Relevance scores
         relevance_results = relevance_classifier(review, candidate_labels=categories)
         relevance_scores = {label: score for label, score in
