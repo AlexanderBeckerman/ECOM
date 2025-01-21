@@ -63,7 +63,7 @@ def calculate_review_reliability(user_id, review_id, file_path, review_file_path
     # Retrieve the specific review
     review = get_review_data_from_json(review_id, review_file_path)
     if not review:
-        return None  # If the review is not found
+        return None  #If the review is not found
 
     # Calculate the reliability of the review itself
     review_length = len(review.get("text", "").split())  # The number of words in the review
