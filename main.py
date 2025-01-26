@@ -1,12 +1,8 @@
-from base import create_tables, engine, Session
+from base import create_tables, Session
 # from models.models import Restaurant, User, Review
-from loaders.load_users import load_users
-from loaders.load_reviews import load_reviews, load_reviews_by_business
-from Project.models.models import User, Restaurant, Review
-from sqlalchemy import inspect
+from Project.models.models import Review
 from transformers import pipeline
 from backend.scoreExtractor import extract_category_ratings
-from backend.helpers.sentence_splitter import split_into_sentences
 
 USERS_FILEPATH = '../Dataset/yelp_academic_dataset_user.json'
 RESTAURANTS_FILEPATH = '../Dataset/yelp_academic_dataset_business.json'
