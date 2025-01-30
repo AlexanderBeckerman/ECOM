@@ -27,6 +27,7 @@ def load_restaurants(session, file_path, limit=50, batch_size=10):
                 review_count=restaurant.get('review_count', 0),
                 attributes=restaurant.get('attributes', {}),
                 categories=categories,
+                scores={},
                 hours=restaurant.get('hours', {})
             ))
             count += 1

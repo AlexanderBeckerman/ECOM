@@ -9,6 +9,8 @@ def load_reviews(session, file_path, limit=50, batch_size=10):
 
         for line in file:
             review = json.loads(line)
+            if len(review['text']) > 500:
+                continue
             reviews.append(Review(
                 review_id=review['review_id'],
                 user_id=review['user_id'],  # Foreign key to User
