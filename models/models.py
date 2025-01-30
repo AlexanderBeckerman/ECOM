@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, JSON
 from sqlalchemy.orm import relationship
-from Project.base import Base
+from base import Base
 
 
 class Restaurant(Base):

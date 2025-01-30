@@ -3,22 +3,18 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 import numpy as np
 from collections import defaultdict
-from reliability_calculator import calculate_review_reliability
+from base import Session
+from models.models import Review
+# from reliability_calculator import calculate_review_reliability
 
-def get_reviews_for_business(business_id, review_file, num_reviews):
-    reviews = []
-    reviews_cnt = 0
-    with open(review_file, "r", encoding="utf-8") as f:
-        print("started reading reviews...")
-        for line in f:
-            if reviews_cnt >= num_reviews:
-                break
-            review = json.loads(line)
-            if review["business_id"] == business_id:
-                reviews.append(review["text"])
-                reviews_cnt += 1
-
-    return reviews
+def get_reviews_for_business(business_id):
+    with Session() as session:
+        reviews = (
+            session.query(Review.text)
+            .filter(Review.business_id == business_id)
+            .all()
+        )
+        return [r[0] for r in reviews]  # Return list of review texts
 
 
 # Function to process a chunk of the review file
@@ -68,7 +64,7 @@ def extract_category_ratings(reviews, categories, relevance_classifier, sentimen
     for i in range(n):
         review = reviews[i]
         #need to work on it
-        reliability_score = calculate_review_reliability(review????)
+        reliability_score = 1
         # Relevance scores
         relevance_results = relevance_classifier(review, candidate_labels=categories)
         relevance_scores = {label: score for label, score in
