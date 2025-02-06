@@ -1,5 +1,5 @@
 import json
-from Project.models.models import User
+from models.models import User
 
 def load_users(session, file_path, limit=50, batch_size=10):
     with open(file_path, 'r') as file:
@@ -22,7 +22,7 @@ def load_users(session, file_path, limit=50, batch_size=10):
             count += 1
             # Insert in batches
             if len(users) >= batch_size:
-                session.bulk_save_objects(users)
+                session.bulk_save_objects(users, update_changed_only=True)
                 session.commit()
                 users = []
             if count >= limit:
@@ -30,5 +30,5 @@ def load_users(session, file_path, limit=50, batch_size=10):
 
             # Commit remaining records
         if users:
-            session.bulk_save_objects(users)
+            session.bulk_save_objects(users, update_changed_only=True)
             session.commit()

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, JSON
 from sqlalchemy.orm import relationship
-from Project.base import Base
+from base import Base
 
 
 class Restaurant(Base):
@@ -14,6 +14,7 @@ class Restaurant(Base):
     review_count = Column(Integer)
     attributes = Column(JSON)
     categories = Column(JSON)
+    scores = Column(JSON, nullable=True)
     hours = Column(JSON)
     reviews = relationship("Review", back_populates="business")
 
