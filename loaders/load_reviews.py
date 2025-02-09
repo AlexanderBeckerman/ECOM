@@ -1,5 +1,5 @@
 import json
-from Project.models.models import Review
+from models.models import Review
 
 
 def load_reviews(session, file_path, limit=50, batch_size=10):
@@ -9,6 +9,8 @@ def load_reviews(session, file_path, limit=50, batch_size=10):
 
         for line in file:
             review = json.loads(line)
+            if len(review['text']) > 500:
+                continue
             reviews.append(Review(
                 review_id=review['review_id'],
                 user_id=review['user_id'],  # Foreign key to User
@@ -60,7 +62,7 @@ def load_reviews_by_business(session, file_path, business_id, review_cnt, limit=
 
                 # Insert in batches
                 if len(reviews) >= batch_size:
-                    session.bulk_save_objects(reviews)
+                    session.bulk_save_objects(reviews, update_changed_only=True)
                     session.commit()
                     reviews = []
 
@@ -69,5 +71,5 @@ def load_reviews_by_business(session, file_path, business_id, review_cnt, limit=
 
         # Commit remaining records
         if reviews:
-            session.bulk_save_objects(reviews)
+            session.bulk_save_objects(reviews, update_changed_only=True)
             session.commit()
