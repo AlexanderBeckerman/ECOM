@@ -6,10 +6,22 @@ from collections import defaultdict
 from base import Session
 from models.models import Review, Restaurant
 from sqlalchemy import func
+from backend.helpers.sentence_splitter import split_into_sentences
 
 # from reliability_calculator import calculate_review_reliability
 
 business_to_scores = {}
+
+
+def filter_reviews(reviews):
+    filtered_reviews = []
+    for review in reviews:
+        sentences = split_into_sentences(review)
+        if len(sentences) < 2:
+            continue
+        sentences = [s for s in sentences if len(s) > 10]
+        filtered_reviews.append(" ".join(sentences))
+    return filtered_reviews
 
 
 def get_reviews_for_business(business_id):
@@ -20,7 +32,9 @@ def get_reviews_for_business(business_id):
                     func.length(Review.text) < 500)  # Model can handle max 512 characters
             .all()
         )
-        return [r[0] for r in reviews]  # Return list of review texts
+        review_texts = [r[0] for r in reviews]
+        filtered_reviews = filter_reviews(review_texts)
+        return filtered_reviews  # Return list of review texts
 
 
 # Function to extract category ratings from reviews
