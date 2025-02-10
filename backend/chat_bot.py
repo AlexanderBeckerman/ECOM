@@ -9,7 +9,7 @@ responses = ["what type of restaurant are you looking for?", "is there something
 def classify_request(user_input):
     """Classify user request using OpenAI or Gemini"""
     prompt = (
-        f"Analyze the following user request and return a Python dictionary with confidence ratings (1-5) "
+        f"Analyze the following user request and return a Python dictionary with ratings (1-5) "
         f"for each of these categories: {categories}. Format the response strictly as a valid Python dictionary. "
         f"User Request: {user_input}"
     )
