@@ -1,17 +1,20 @@
 from sqlalchemy.orm import Session
 from models import User, Review  # Importing models for accessing the database
 
+
 def get_user_data(user_id, db_session: Session):
     """
     Retrieve user data from the database based on user_id.
     """
-    return db_session.query(User).filter(User.user_id == user_id).first()
+    return db_session.query(User).filter(User.user_id == str(user_id)).first()
+
 
 def get_review_data(review_id, db_session: Session):
     """
     Retrieve review data from the database based on review_id.
     """
-    return db_session.query(Review).filter(Review.review_id == review_id).first()
+    return db_session.query(Review).filter(Review.review_id == str(review_id)).first()
+
 
 def calculate_reliability(user_id, db_session: Session):
     """
@@ -53,6 +56,7 @@ def calculate_reliability(user_id, db_session: Session):
     )
 
     return reliability
+
 
 def calculate_review_reliability(user_id, review_id, restaurant_avg_score, db_session: Session):
     """

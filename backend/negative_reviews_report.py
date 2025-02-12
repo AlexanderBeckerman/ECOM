@@ -11,7 +11,8 @@ def generate_negative_review_report(restaurant_id, db_session: Session, reliabil
     Generate a report for a restaurant based on low-rated reviews from reliable users.
     """
     negative_reviews = db_session.query(Review).filter(
-        (Review.business_id == restaurant_id)
+        (Review.business_id == restaurant_id) & (Review.stars <= 2)
+    ).all()
 
     if not negative_reviews:
         return "No negative reviews available for this restaurant."
