@@ -1,70 +1,89 @@
-import React, { useState, useEffect } from 'react';
-
-const App = () => {
+import { useState, useEffect, useRef } from "react";
+import './App.css';
+export default function ReviewsComponent() {
     const [restaurants, setRestaurants] = useState([]);
-    const [selectedRestaurant, setSelectedRestaurant] = useState('');
-    const [reviews, setReviews] = useState([]);
-    const [scores, setScores] = useState({});
+    const [selectedRestaurant, setSelectedRestaurant] = useState("");
+    const [reviewsCache, setReviewsCache] = useState({}); // Cache for reviews
+    const [scoresCache, setScoresCache] = useState({}); // Cache for scores
+    const reviewsContainerRef = useRef(null); // Ref for the reviews container
 
-    // Fetch restaurant names
     useEffect(() => {
-        fetch('/restaurants')
-            .then(response => response.json())
-            .then(data => setRestaurants(data));
+        // Fetch restaurant list from API
+        fetch("/restaurants")
+            .then((res) => res.json())
+            .then((data) => setRestaurants(data));
     }, []);
 
-    // Fetch reviews when a restaurant is selected
-    const fetchReviews = (restaurantName) => {
-        fetch(`/reviews?name=${restaurantName}`)
-            .then(response => response.json())
-            .then(data => setReviews(data));
+    const fetchReviews = async (restaurantName) => {
+        // Reset scroll to top when new restaurant is selected
+        if (reviewsContainerRef.current) {
+            reviewsContainerRef.current.scrollTop = 0;
+        }
+        if (reviewsCache[restaurantName]) {
+            return; // Use cached data if available
+        }
+        const response = await fetch(`/reviews?name=${restaurantName}`);
+        const data = await response.json();
+        setReviewsCache((prev) => ({ ...prev, [restaurantName]: data }));
+
+
     };
 
-    // Fetch scores when a restaurant is selected
-    const fetchScores = (restaurantName) => {
-        fetch(`/scores?name=${restaurantName}`)
-            .then(response => response.json())
-            .then(data => setScores(data));
+    const fetchScores = async (restaurantName) => {
+        if (scoresCache[restaurantName]) {
+            return; // Use cached data if available
+        }
+        const response = await fetch(`/scores?name=${restaurantName}`);
+        const data = await response.json();
+        setScoresCache((prev) => ({ ...prev, [restaurantName]: data }));
     };
+
+    const handleRestaurantChange = (e) => {
+        const restaurantName = e.target.value;
+        setSelectedRestaurant(restaurantName);
+        fetchReviews(restaurantName);
+        fetchScores(restaurantName);
+    };
+
     return (
-        <div style={{ padding: '20px' }}>
+        <div className="container">
             <h1>See Reviews For</h1>
-            <select
-                onChange={(e) => {
-                    setSelectedRestaurant(e.target.value);
-                    fetchReviews(e.target.value);
-                    fetchScores(e.target.value);
-                }}
-            >
-                <option value="">Select a restaurant</option>
-                {restaurants.map((name, index) => (
-                    <option key={index} value={name}>
-                        {name}
-                    </option>
-                ))}
-            </select>
-
-            <div>
-                Scores for {selectedRestaurant}
-                <ul>
-                    {Object.keys(scores).map((score, index) => (
-                        <li key={index}>
-                            {score}: {scores[score]}
-                        </li>
+            <div className="dropdown-container">
+                <select className="dropdown" onChange={handleRestaurantChange}>
+                    <option value="">Select a restaurant</option>
+                    {restaurants.map((name, index) => (
+                        <option key={index} value={name}>
+                            {name}
+                        </option>
                     ))}
+                </select>
+            </div>
+
+            <div className="scores-container">
+                <h2>Scores for {selectedRestaurant}</h2>
+                <ul>
+                    {selectedRestaurant &&
+                        scoresCache[selectedRestaurant] &&
+                        Object.keys(scoresCache[selectedRestaurant]).map((score, index) => (
+                            <li key={index}>
+                                {score}: {scoresCache[selectedRestaurant][score]}
+                            </li>
+                        ))}
                 </ul>
             </div>
 
-            <div>
+            <div className="reviews-container" ref={reviewsContainerRef}>
                 <h2>Reviews for {selectedRestaurant}</h2>
                 <ul>
-                    {reviews.map((review, index) => (
-                        <li key={index}>{review}</li>
-                    ))}
+                    {selectedRestaurant &&
+                        reviewsCache[selectedRestaurant] &&
+                        reviewsCache[selectedRestaurant].map((review, index) => (
+                            <li key={index} className="review-item">
+                                {review}
+                            </li>
+                        ))}
                 </ul>
             </div>
         </div>
     );
-};
-
-export default App;
+}
