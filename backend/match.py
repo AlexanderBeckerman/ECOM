@@ -11,7 +11,7 @@ def weighted_score(customer_scores, restaurant_scores, weights, restaurant_stars
     rating_factor = 0.9 + restaurant_stars / 50 # rating_factor between [0.92, 1.0] for minimal influence
     return base_score * rating_factor * distance_factor
 
-def rank_restaurants(customer_scores, restaurants, customer_location, categories, max_threshold=3, min_threshold=0.3):
+def rank_restaurants(customer_scores, restaurants, categories, customer_location=None, max_threshold=3, min_threshold=0.3):
     rankings = []
     
     weights = calculate_weights(customer_scores)
