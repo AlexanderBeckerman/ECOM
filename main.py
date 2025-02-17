@@ -23,9 +23,11 @@ REVIEWS_FILEPATH = './Dataset/yelp_academic_dataset_review.json'
 
 def main():
     create_tables()  # Create tables if they don't exist
+
+    # Uncomment if you want to load data from scratch
     with Session() as session:
         load_users(session, USERS_FILEPATH)
-        load_restaurants(session, RESTAURANTS_FILEPATH, limit=5)
+        load_restaurants(session, RESTAURANTS_FILEPATH, limit=15)
         business_id = session.query(Restaurant.business_id).all()
         for id in business_id:
             business_id = id[0]
@@ -39,15 +41,9 @@ def main():
     relevance_classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
     sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
 
+    # Uncomment if you want to calculate scores for all businesses in advance
     get_scores_for_all_businesses(relevance_classifier,
                                   sentiment_analyzer)  # Calculate scores for all businesses in advance
-
-    # with Session() as session:
-    #     reviews = session.query(Review.text).filter(Review.business_id == business_id).all()
-    # reviews = [review[0] for review in reviews]
-    # categories = ["food", "service", "music", "price"]
-    # result, personal_category_scores = extract_category_ratings(reviews, categories, relevance_classifier,
-    #                                                             sentiment_analyzer)
 
 
 if __name__ == '__main__':
