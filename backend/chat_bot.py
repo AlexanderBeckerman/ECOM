@@ -1,8 +1,7 @@
 
 import google.generativeai as genai
 import json
-import warnings
-warnings.filterwarnings("ignore", message="All log messages before absl::InitializeLog() is called are written to STDERR")
+
 
 
 GEMINI_API_KEY =  "AIzaSyBJvCs7WGQvuuNIUel_5jytl1FEHBDM4HU"
