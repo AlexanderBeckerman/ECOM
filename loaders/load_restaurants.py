@@ -1,7 +1,7 @@
 import json
 from models.models import Restaurant
 
-restaurant_words = {"Food", "Diners", "Restaurants"}
+restaurant_words = {"Diners", "Restaurants", "Bars", "Italian", "Japanese"}
 
 
 def load_restaurants(session, file_path, limit=50, batch_size=10):
