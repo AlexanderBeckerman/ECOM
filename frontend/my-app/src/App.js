@@ -1,12 +1,15 @@
-import { useState, useEffect, useRef } from "react";
+import {useState, useEffect, useRef} from "react";
 import './App.css';
+
 export default function ReviewsComponent() {
     const [restaurants, setRestaurants] = useState([]);
     const [selectedRestaurant, setSelectedRestaurant] = useState("");
     const [reviewsCache, setReviewsCache] = useState({}); // Cache for reviews
     const [scoresCache, setScoresCache] = useState({}); // Cache for scores
     const reviewsContainerRef = useRef(null); // Ref for the reviews container
+    const [selectedCategories, setSelectedCategories] = useState([]); // Default selected categories
 
+    const availableCategories = ["food", "service", "music", "price", "drinks", "cleanliness"];
     useEffect(() => {
         // Fetch restaurant list from API
         fetch("/restaurants")
@@ -24,7 +27,7 @@ export default function ReviewsComponent() {
         }
         const response = await fetch(`/reviews?name=${restaurantName}`);
         const data = await response.json();
-        setReviewsCache((prev) => ({ ...prev, [restaurantName]: data }));
+        setReviewsCache((prev) => ({...prev, [restaurantName]: data}));
 
 
     };
@@ -35,7 +38,7 @@ export default function ReviewsComponent() {
         }
         const response = await fetch(`/scores?name=${restaurantName}`);
         const data = await response.json();
-        setScoresCache((prev) => ({ ...prev, [restaurantName]: data }));
+        setScoresCache((prev) => ({...prev, [restaurantName]: data}));
     };
 
     const handleRestaurantChange = (e) => {
@@ -43,6 +46,12 @@ export default function ReviewsComponent() {
         setSelectedRestaurant(restaurantName);
         fetchReviews(restaurantName);
         fetchScores(restaurantName);
+    };
+
+    const toggleCategory = (category) => {
+        setSelectedCategories((prev) =>
+            prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
+        );
     };
 
     return (
@@ -59,18 +68,37 @@ export default function ReviewsComponent() {
                 </select>
             </div>
 
-            <div className="scores-container">
-                <h2>Scores for {selectedRestaurant}</h2>
-                <ul>
-                    {selectedRestaurant &&
-                        scoresCache[selectedRestaurant] &&
-                        Object.keys(scoresCache[selectedRestaurant]).map((score, index) => (
-                            <li key={index}>
-                                {score}: {scoresCache[selectedRestaurant][score]}
-                            </li>
-                        ))}
-                </ul>
+            {/* Category Selection (Independent of Restaurant) */}
+            <h2>Select Score Categories</h2>
+            <div className="categories-container">
+                {availableCategories.map((category) => (
+                    <button
+                        key={category}
+                        className={`category-button ${selectedCategories.includes(category) ? "active" : ""}`}
+                        onClick={() => toggleCategory(category)}
+                    >
+                        {category}
+                    </button>
+                ))}
             </div>
+
+            {selectedRestaurant && scoresCache[selectedRestaurant] && (
+                <div className="scores-container">
+                    <h2>Scores for {selectedRestaurant}</h2>
+                    <ul>
+                        {selectedCategories.map((category) =>
+                            scoresCache[selectedRestaurant][category] !== undefined ? (
+                                <li key={category}>
+                                    {category}: {scoresCache[selectedRestaurant][category].toFixed(2)}
+                                </li>
+                            ) :
+                                <li key={category}>
+                                    {category}: Not Enough Data
+                                </li>
+                        )}
+                    </ul>
+                </div>
+            )}
 
             <div className="reviews-container" ref={reviewsContainerRef}>
                 <h2>Reviews for {selectedRestaurant}</h2>
