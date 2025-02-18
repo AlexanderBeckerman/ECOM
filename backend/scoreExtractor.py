@@ -80,14 +80,13 @@ def extract_category_ratings(reviews, categories, relevance_classifier, sentimen
     return result, personal_category_scores
 
 
-def get_scores_for_all_businesses(relevance_classifier, sentiment_analyzer):
+def get_scores_for_all_businesses(categories, relevance_classifier, sentiment_analyzer):
     with Session() as session:
         business_ids = session.query(Review.business_id).distinct().all()
         business_ids = [id[0] for id in business_ids]
         executor = ThreadPoolExecutor(max_workers=4)
         results = executor.map(get_reviews_for_business, business_ids)
         for business_id, reviews in zip(business_ids, results):
-            categories = ["food", "service", "music", "price"]
             result, personal_category_scores = extract_category_ratings(reviews, categories, relevance_classifier,
                                                                         sentiment_analyzer)
             business_to_scores[business_id] = result
