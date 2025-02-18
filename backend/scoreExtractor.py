@@ -11,7 +11,7 @@ from backend.helpers.sentence_splitter import split_into_sentences
 # from reliability_calculator import calculate_review_reliability
 
 business_to_scores = {}
-
+business_to_weights = {}
 
 def filter_reviews(reviews):
     filtered_reviews = []
@@ -70,6 +70,7 @@ def extract_category_ratings(reviews, categories, relevance_classifier, sentimen
                     f"relevance score: {relevance}, sentiment score: {sentiment_score} for category: {category}, review:\n{review}")
                 print()
     result = {}
+    weight = {category: sum(category_relevance_scores[category]) for category in categories}
     for category, scores in category_scores.items():
         if scores:
             result[category] = np.dot(scores, category_relevance_scores[category]) / sum(
@@ -77,7 +78,7 @@ def extract_category_ratings(reviews, categories, relevance_classifier, sentimen
         else:
             result[category] = 0
 
-    return result, personal_category_scores
+    return result, personal_category_scores, weight
 
 
 def get_scores_for_all_businesses(relevance_classifier, sentiment_analyzer):
@@ -88,9 +89,10 @@ def get_scores_for_all_businesses(relevance_classifier, sentiment_analyzer):
         results = executor.map(get_reviews_for_business, business_ids)
         for business_id, reviews in zip(business_ids, results):
             categories = ["food", "service", "music", "price"]
-            result, personal_category_scores = extract_category_ratings(reviews, categories, relevance_classifier,
+            result, personal_category_scores, weight = extract_category_ratings(reviews, categories, relevance_classifier,
                                                                         sentiment_analyzer)
             business_to_scores[business_id] = result
+            business_to_weights[business_id] = weight
             print(f"Business ID: {business_id}, Category Scores: {result}")
             print()
             # calculate_review_reliability(personal_category_scores, business_id)
@@ -101,7 +103,24 @@ def get_scores_for_all_businesses(relevance_classifier, sentiment_analyzer):
 def save_scores_to_db():
     with Session() as session:
         for business_id, scores in business_to_scores.items():
+            weights = business_to_weights[business_id]
             restaurant = session.query(Restaurant).filter(Restaurant.business_id == business_id).first()
-            restaurant.scores = scores
+            past_scores = restaurant.scores
+            past_weights = restaurant.score_weights
+            if past_scores:
+                future_score = {}
+                future_weight = {}
+                for category, score in scores.items():
+                    if category in past_scores:
+                        future_weight[category] = past_weights[category] + weights[category]
+                        future_score[category] = (past_scores[category]*past_weights[category] + score*weights[category]) /future_weight[category]
+                    else:
+                        future_score[category] = score
+                        future_weight[category] = weights[category]
+                restaurant.scores = future_score
+                restaurant.score_weights = future_weight
+            else:
+                restaurant.scores = scores
+                restaurant.score_weights = weights
         session.commit()
         print("Scores saved to database")
