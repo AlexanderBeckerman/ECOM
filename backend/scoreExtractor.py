@@ -88,7 +88,6 @@ def get_scores_for_all_businesses(categories, relevance_classifier, sentiment_an
         executor = ThreadPoolExecutor(max_workers=4)
         results = executor.map(get_reviews_for_business, business_ids)
         for business_id, reviews in zip(business_ids, results):
-            categories = ["food", "service", "music", "price"]
             result, personal_category_scores, weight = extract_category_ratings(reviews, categories, relevance_classifier, sentiment_analyzer)
             business_to_scores[business_id] = result
             business_to_weights[business_id] = weight
