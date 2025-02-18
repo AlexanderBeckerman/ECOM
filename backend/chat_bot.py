@@ -1,15 +1,15 @@
-
 import google.generativeai as genai
 import json
+from backend.scoreExtractor import categories
 
-
-
-GEMINI_API_KEY =  "AIzaSyBJvCs7WGQvuuNIUel_5jytl1FEHBDM4HU"
+GEMINI_API_KEY = "AIzaSyBJvCs7WGQvuuNIUel_5jytl1FEHBDM4HU"  # Would ideally move to a .env file
 genai.configure(api_key=GEMINI_API_KEY)
 
-categories = ["food", "service", "music", "price"] # temp local
-responses = ["what type of restaurant are you looking for?", "is there something else you want to add?", "I'm sorry its not what you are looking for, is there something you dislike?"] # temp
+responses = ["what type of restaurant are you looking for?", "is there something else you want to add?",
+             "I'm sorry its not what you are looking for, is there something you dislike?"]  # temp
 model = genai.GenerativeModel("gemini-pro")
+
+
 def classify_request(user_input):
     """Classify user request using OpenAI or Gemini"""
     prompt = (
@@ -24,11 +24,11 @@ def classify_request(user_input):
     for i in range(l_text):
         if text[i] == "{":
             text = text[i:]
-            l_text =l_text - i
+            l_text = l_text - i
             break
-    for i in range(l_text-1, 0, -1):
+    for i in range(l_text - 1, 0, -1):
         if text[i] == "}":
-            text = text[:i+1]
+            text = text[:i + 1]
             break
     try:
         category_ratings = json.loads(text)  # Ensure valid JSON format
@@ -36,13 +36,14 @@ def classify_request(user_input):
         category_ratings = None  # Default values if parsing fails
     return category_ratings
 
+
 def user_categories_calculator(user, num_of_responses):
     user_categories_rating = user.categories_rating
     str_input = responses[num_of_responses]
     user_input = input(str_input)
-    category_ratings = classify_request(user_input)  
+    category_ratings = classify_request(user_input)
     for category, rating in category_ratings.items():
-        if rating !=0:
+        if rating != 0:
             if category in user_categories_rating:
                 user_categories_rating[category] = (user_categories_rating[category] + rating) / 2
             else:
