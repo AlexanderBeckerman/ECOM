@@ -15,6 +15,7 @@ class Restaurant(Base):
     attributes = Column(JSON)
     categories = Column(JSON)
     scores = Column(JSON, nullable=True)
+    score_weights = Column(JSON, nullable=True)
     hours = Column(JSON)
     reviews = relationship("Review", back_populates="business")
 
