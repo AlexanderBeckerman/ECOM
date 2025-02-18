@@ -12,6 +12,8 @@ from backend.helpers.sentence_splitter import split_into_sentences
 
 business_to_scores = {}
 business_to_weights = {}
+categories = ["food", "service", "music", "price", "cleanliness"]
+
 
 def filter_reviews(reviews):
     filtered_reviews = []
@@ -38,7 +40,7 @@ def get_reviews_for_business(business_id):
 
 
 # Function to extract category ratings from reviews
-def extract_category_ratings(reviews, categories, relevance_classifier, sentiment_analyzer):
+def extract_category_ratings(reviews, relevance_classifier, sentiment_analyzer):
     category_scores = defaultdict(list)
     n = len(reviews)
     personal_category_scores = [{} for i in range(n)]
@@ -81,15 +83,15 @@ def extract_category_ratings(reviews, categories, relevance_classifier, sentimen
     return result, personal_category_scores, weight
 
 
-def get_scores_for_all_businesses(categories, relevance_classifier, sentiment_analyzer):
+def get_scores_for_all_businesses(relevance_classifier, sentiment_analyzer):
     with Session() as session:
         business_ids = session.query(Review.business_id).distinct().all()
         business_ids = [id[0] for id in business_ids]
         executor = ThreadPoolExecutor(max_workers=4)
         results = executor.map(get_reviews_for_business, business_ids)
         for business_id, reviews in zip(business_ids, results):
-            categories = ["food", "service", "music", "price"]
-            result, personal_category_scores, weight = extract_category_ratings(reviews, categories, relevance_classifier, sentiment_analyzer)
+            result, personal_category_scores, weight = extract_category_ratings(reviews, relevance_classifier,
+                                                                                sentiment_analyzer)
             business_to_scores[business_id] = result
             business_to_weights[business_id] = weight
             print(f"Business ID: {business_id}, Category Scores: {result}")
@@ -112,7 +114,8 @@ def save_scores_to_db():
                 for category, score in scores.items():
                     if category in past_scores:
                         future_weight[category] = past_weights[category] + weights[category]
-                        future_score[category] = (past_scores[category]*past_weights[category] + score*weights[category]) /future_weight[category]
+                        future_score[category] = (past_scores[category] * past_weights[category] + score * weights[
+                            category]) / future_weight[category]
                     else:
                         future_score[category] = score
                         future_weight[category] = weights[category]
