@@ -29,8 +29,8 @@ class User(Base):
     fans = Column(Integer)
     average_stars = Column(Float)
     compliments = Column(Integer)
-
     reviews = relationship('Review', back_populates='user')
+    categories_rating = {}
 
 
 class Review(Base):

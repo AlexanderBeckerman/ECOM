@@ -12,9 +12,6 @@ from backend.scoreExtractor import get_scores_for_all_businesses
 from backend.helpers.sentence_splitter import split_into_sentences
 from flask import Flask, jsonify
 from backend.routes.routes import user_bp
-from backend.reliability_calculator import calculate_reliability
-from backend.restaurant_summarizer import summarize_reviews_for_restaurant
-from backend.improvement_report import generate_improvement_report
 app = Flask(__name__)
 app.register_blueprint(user_bp)
 
@@ -50,6 +47,8 @@ def main():
     #get_scores_for_all_businesses(relevance_classifier,
                                   #sentiment_analyzer)  # Calculate scores for all businesses in advance
 
+
+    #match_restaurants_to_user([2.4, 3.3, 4.2, 4.6], ["food", "service", "music", "price"], ("Harvey", "LA"))
 
 if __name__ == '__main__':
     main()
