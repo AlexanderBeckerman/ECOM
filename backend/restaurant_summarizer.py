@@ -1,52 +1,46 @@
 import google.generativeai as genai
 from sqlalchemy.orm import Session
 from models.models import Review
-from backend.reliability_calculator import calculate_reliability
+from backend.reliability_calculator import calculate_user_reliability
 
 GOOGLE_API_KEY = "AIzaSyDDxhcSjPH6qugsGURmzE8tBcr6E3FdQCc"
 
-# אתחול ה-API של Gemini
 genai.configure(api_key=GOOGLE_API_KEY)
 
 
 def summarize_reviews_for_restaurant(restaurant_id, db_session: Session, top_n=4, min_words=0):
     """
-    שולף את המשתמשים האמינים ביותר למסעדה ויוצר סיכום ביקורות בעזרת Gemini.
+    Retrieves the most reliable users for a restaurant and generates a summary of their reviews.
     """
-    print("Function Called!")
     all_reviews = db_session.query(Review).all()
     print(f"Total reviews in DB: {len(all_reviews)}")
 
-    # שולף את כל הביקורות למסעדה הנתונה
-    reviews = db_session.query(Review).filter(Review.business_id == restaurant_id).all()
+    reviews = db_session.query(Review).filter(Review.business_id == str(restaurant_id)).all()
 
     if not reviews:
-        print("No reviews available for this restaurant.")
         return "No reviews available for this restaurant."
 
     user_reliabilities = []
 
-    # חישוב אמינות לכל משתמש על סמך הביקורות שלו
+    # Calculate reliability for each user
     for review in reviews:
         user_id = review.user_id
-        user_reliability = 1  # כאן ניתן להחליף עם חישוב האמינות האמיתי
-
+        user_reliability = 1  # replace with user_reliability = calculate_user_reliability(user_id, db_session)
         review_text = review.text
-        # בודק אם הביקורת עומדת בתנאי המינימום של מילים
+
+        # Check if the review meets the minimum word requirement
         if len(review_text.split()) >= min_words:
             user_reliabilities.append((user_id, user_reliability, review_text))
 
-    # אם אין ביקורות שעומדות בתנאים
     if not user_reliabilities:
         return "No valid reviews with enough detail found for this restaurant."
 
-    # ממיין את המשתמשים לפי האמינות ובוחר את ה-N הטובים ביותר
+    # Sort users by reliability and select the top N most reliable ones
     top_users = sorted(user_reliabilities, key=lambda x: x[1], reverse=True)[:top_n]
-    print(top_users)
-    # מאחד את כל הביקורות של המשתמשים האמינים ביותר
+
+    # Combine reviews from the most reliable users
     combined_reviews = " ".join([user_review[2] for user_review in top_users])
 
-    # יוצר אובייקט של מודל Gemini
     model = genai.GenerativeModel("gemini-pro")
 
     response = model.generate_content(
@@ -55,5 +49,3 @@ def summarize_reviews_for_restaurant(restaurant_id, db_session: Session, top_n=4
     )
 
     return response.text.strip()
-
-

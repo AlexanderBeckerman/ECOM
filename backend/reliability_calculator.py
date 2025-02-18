@@ -16,7 +16,7 @@ def get_review_data(review_id, db_session: Session):
     return db_session.query(Review).filter(Review.review_id == str(review_id)).first()
 
 
-def calculate_reliability(user_id, db_session: Session):
+def calculate_user_reliability(user_id, db_session: Session):
     """
     Calculate the reliability of a user based on attributes from the database.
     """
@@ -27,8 +27,8 @@ def calculate_reliability(user_id, db_session: Session):
     # 1. Tenure: Calculate the years since the user joined Yelp
     joined = user.joined
     join_year = int(joined.split("-")[0]) if joined else 2000
-    current_year = 2024
-    tenure_score = min((current_year - join_year) / 10, 1)  # Normalize to 10 years
+    current_year = 2025
+    tenure_score = min((current_year - join_year) / 6, 1)  # Normalize to 6 years
 
     # 2. Review count: Indicates activity level
     review_count = user.review_count or 0
@@ -43,16 +43,26 @@ def calculate_reliability(user_id, db_session: Session):
     fans_score = min(fans / 10, 1)  # Normalize to 10 fans
 
     # 5. Average stars: Measures rating consistency
-    average_stars = user.average_stars or 0
-    average_stars_score = average_stars / 5  # Normalize to 5 stars
+    user_avg_stars = user.average_stars or 0
+    # Define the typical rating range based on actual data
+    typical_min = 3.3
+    typical_max = 4.5
+
+    if typical_min <= user_avg_stars <= typical_max:
+        average_stars_score = 1.0  # Full reliability for typical ratings
+    else:
+        # Penalize for extreme ratings
+        deviation = min(abs(user_avg_stars - typical_min), abs(user_avg_stars - typical_max))
+        penalty = 0.25 * deviation  # Adjust penalty factor as needed
+        average_stars_score = max(1.0 - penalty, 0.0)
 
     # Final weighted reliability score
     reliability = (
         0.15 * tenure_score +
         0.3 * review_count_score +
-        0.2 * compliments_score +
+        0.15 * compliments_score +
         0.3 * fans_score +
-        0.05 * average_stars_score
+        0.1 * average_stars_score
     )
 
     return reliability
@@ -68,7 +78,7 @@ def calculate_review_reliability(user_id, review_id, restaurant_avg_score, db_se
         return None  # If the user is not found
 
     # Calculate the user's reliability
-    user_reliability = calculate_reliability(user_id, db_session)
+    user_reliability = calculate_user_reliability(user_id, db_session)
 
     # Retrieve the specific review
     review = get_review_data(review_id, db_session)
@@ -78,22 +88,25 @@ def calculate_review_reliability(user_id, review_id, restaurant_avg_score, db_se
     # Calculate the reliability of the review itself
     review_text_length = len(review.text.split())  # The number of words in the review
 
-    # 1. Short reviews (e.g., 2 words or less) decrease reliability slightly
-    if review_text_length <= 2:
-        review_text_score = 0.9  # Penalize slightly
-    else:
-        review_text_score = 1  # No penalty
+    # 1. Short reviews (e.g., 1 word or less) decrease reliability slightly
+    review_text_score = 0.5 if review_text_length < 2 else 1
 
     # 2. Deviation from the restaurant's average score
     review_score = review.stars
     deviation = abs(review_score - restaurant_avg_score)
-    deviation_score = max(1 - (deviation / 5), 0.8)  # Minimal impact, capped at 0.8
+    deviation_score = max(1 - (deviation / 5), 0.8)
 
-    # Combine the user's reliability with the review's reliability
-    final_reliability = (
+    # 3. Compute base reliability score (without useful bonus)
+    base_reliability = (
         0.8 * user_reliability +
         0.1 * review_text_score +
         0.1 * deviation_score
     )
+
+    # 4. Apply useful bonus *only if useful > 0*
+    useful_bonus = 0.02 * min(review.useful, 10) if review.useful > 0 else 0  # Max bonus = 0.2
+
+    # Final reliability score with useful bonus
+    final_reliability = min(1, base_reliability + useful_bonus)  # Ensure max 1
 
     return final_reliability
