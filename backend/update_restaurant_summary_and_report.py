@@ -2,6 +2,7 @@ from models.models import Restaurant
 from backend.restaurant_summarizer import summarize_reviews_for_restaurant
 from backend.improvement_report import generate_improvement_report
 
+
 def update_restaurant_summary_and_report(session):
     all_restaurants = session.query(Restaurant).all()
     for restaurant in all_restaurants:

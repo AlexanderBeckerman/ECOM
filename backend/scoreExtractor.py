@@ -10,6 +10,7 @@ from backend.reliability_calculator import calculate_review_reliability
 
 business_to_scores = {}
 
+
 def filter_reviews(reviews):
     filtered_reviews = []
     for review in reviews:
@@ -19,6 +20,7 @@ def filter_reviews(reviews):
         sentences = [s for s in sentences if len(s) > 10]
         filtered_reviews.append(" ".join(sentences))
     return filtered_reviews
+
 
 def get_reviews_for_business(business_id):
     with Session() as session:
@@ -30,12 +32,14 @@ def get_reviews_for_business(business_id):
         )
         return reviews  # Return list of Review objects
 
+
 def get_average_rating(session: Session, business_id: str) -> float:
     restaurant = session.query(Restaurant).filter(Restaurant.business_id == business_id).first()
     if restaurant:
         return restaurant.stars
     else:
         raise ValueError(f"Restaurant with business_id {business_id} not found.")
+
 
 def extract_category_ratings(reviews, categories, relevance_classifier, sentiment_analyzer):
     with Session() as session:
@@ -55,7 +59,7 @@ def extract_category_ratings(reviews, categories, relevance_classifier, sentimen
                 print(e)
                 continue
 
-            reliability_score = calculate_review_reliability(user_id, review_id, avg_rating, session) + 0.26
+            reliability_score = calculate_review_reliability(user_id, review_id, avg_rating, session)
 
             # Relevance scores
             relevance_results = relevance_classifier(review_text, candidate_labels=categories)
@@ -87,6 +91,7 @@ def extract_category_ratings(reviews, categories, relevance_classifier, sentimen
 
         return result, personal_category_scores
 
+
 def get_scores_for_all_businesses(relevance_classifier, sentiment_analyzer):
     with Session() as session:
         business_ids = session.query(Review.business_id).distinct().all()
@@ -103,6 +108,7 @@ def get_scores_for_all_businesses(relevance_classifier, sentiment_analyzer):
             print(f"Business ID: {business_id}, Category Scores: {result}\n")
 
     save_scores_to_db()
+
 
 def save_scores_to_db():
     with Session() as session:
