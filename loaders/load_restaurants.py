@@ -3,7 +3,7 @@ from models.models import Restaurant
 from backend.restaurant_summarizer import summarize_reviews_for_restaurant
 from backend.improvement_report import generate_improvement_report
 
-restaurant_words = {"Food", "Diners", "Restaurants"}
+restaurant_words = {"Diners", "Restaurants", "Bars", "Italian", "Japanese"}
 
 def load_restaurants(session, file_path, limit=50, batch_size=10):
     with open(file_path, 'r', encoding='utf-8') as file:
