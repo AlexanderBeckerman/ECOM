@@ -25,7 +25,7 @@ def summarize_reviews_for_restaurant(restaurant_id, db_session: Session, top_n=4
     # Calculate reliability for each user
     for review in reviews:
         user_id = review.user_id
-        user_reliability = 1  # replace with user_reliability = calculate_user_reliability(user_id, db_session)
+        user_reliability = calculate_user_reliability(user_id, db_session)
         review_text = review.text
 
         # Check if the review meets the minimum word requirement

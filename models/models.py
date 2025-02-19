@@ -16,6 +16,8 @@ class Restaurant(Base):
     categories = Column(JSON)
     scores = Column(JSON, nullable=True)
     hours = Column(JSON)
+    summary = Column(String, nullable=True)
+    improvement_report = Column(String, nullable=True)
     reviews = relationship("Review", back_populates="business")
 
 
