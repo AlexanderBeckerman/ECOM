@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models.models import User, Review  # Importing models for accessing the database
+from models.models import User, Review
 
 
 def get_user_data(user_id, db_session: Session):

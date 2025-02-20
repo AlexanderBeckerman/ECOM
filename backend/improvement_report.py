@@ -22,7 +22,7 @@ def generate_improvement_report(restaurant_id, db_session: Session, threshold=3)
 
         relevant_reviews = []
         for review in reviews:
-            user_reliability = 1  # replace with calculate_user_reliability(review.user_id, session)
+            user_reliability = calculate_user_reliability(review.user_id, db_session)
             if user_reliability >= 0.5 and review.stars <= threshold:
                 relevant_reviews.append(review.text)
 
