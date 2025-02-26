@@ -15,7 +15,6 @@ class Restaurant(Base):
     attributes = Column(JSON)
     categories = Column(JSON)
     scores = Column(JSON, nullable=True)
-    score_weights = Column(JSON, nullable=True)
     hours = Column(JSON)
     summary = Column(String, nullable=True)
     improvement_report = Column(String, nullable=True)
